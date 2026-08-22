@@ -1,3 +1,5 @@
+/- Modified from https://github.com/PatrickMassot/GlimpseOfLean -/
+
 import Mathlib
 
 set_option warningAsError false

@@ -1,3 +1,5 @@
+/- Modified from https://github.com/PatrickMassot/GlimpseOfLean -/
+
 import Mathlib
 
 set_option warningAsError false
@@ -248,6 +250,8 @@ From a practical point of view, when writing a `calc` proof, it is sometimes con
 
 The underscores should be placed below the left-hand-side of the first line below the `calc`.
 Aligning the equal signs and `:=` signs is not necessary but looks tidy.
+
+You can write `calc?` to quickly get started with the right syntax.
 -/
 
 example (a b c d : ℝ) (h : c = d * a + b) (h' : b = a * d) : c = 2 * a * d := by
