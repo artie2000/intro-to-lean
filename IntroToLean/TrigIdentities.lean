@@ -11,17 +11,20 @@ section
 
 open Lean Parser Tactic
 
-macro (name := ring) "ring" : tactic =>
-  `(tactic| first | ring1 | ring_nf)
+-- TODO : make a good `field` tactic
+macro (name := field) "field" : tactic =>
+  `(tactic | first | field_simp; ring_nf)
 
 end
 
 open Real
 
+-- TODO : comment-free version for workshop
+
 /-
 # Introduction to this tutorial
 
-Let's look at a Lean proof without trying to understand any of the syntatcial details.
+Let's look at a Lean proof without trying to understand any of the syntactical details.
 
 If everything works, you currently see a panel to the right of this text with a message like
 "No info found." This panel will start displaying interesting things inside the proof.
@@ -29,23 +32,35 @@ If everything works, you currently see a panel to the right of this text with a 
 Note: any text between `/-` and `-/` or after a `--` is a comment for you
 that is ignored by Lean.
 
--- TODO : example below. Must use real numbers. Should explain basic layout of a proof and tactics.
+We write `x : ℝ` to say `x` is a real number, which is written `x ∈ ℝ` on paper.
 
-Something more subtle is that we write `l : ℝ` to say `l` is a real number, where you
-may write `l ∈ ℝ` on paper.
+We claim that if `cos x` is not equal to `0`, then the following formula holds:
+`sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2)`.
 
-Now we claim that if `f` is continuous at `x₀` then it is sequentially continuous
-at `x₀`: for any sequence `u` converging to `x₀`, the sequence `f ∘ u` converges
-to `f x₀`.
-Every thing on the next line describes the objects and assumptions, each with its name.
+The next line describes the objects and assumptions, each with its name.
 The following line is the claim we need to prove. -/
-example (f : ℝ → ℝ) (u : ℕ → ℝ) (x₀ : ℝ) (hu : seq_limit u x₀) (hf : continuous_at f x₀) :
-  seq_limit (f ∘ u) (f x₀) := by -- This `by` keyword marks the beginning of the proof
+example (x : ℝ) (hx : cos (x / 2) ≠ 0) :
+  sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2) := by -- This `by` keyword marks the beginning of the proof
   -- Put your text cursor here and watch the panel to the right.
   -- To the right of the blue `⊢` symbol is what we are trying to prove. Above this
   -- is our list of variables and hypotheses. As you read the proof, move your cursor from
   -- line to line (for example with the down-arrow button) and watch the panel change.
+  calc
+    sin x = sin (2 * (x / 2)) := by field
+    _ = 2 * sin (x / 2) * cos (x / 2) := by rw [sin_two_mul]
+  symm
+  calc
+    _ = 2 * sin (x / 2) * (1 / (cos (x / 2) * (1 + tan (x / 2) ^ 2))) := by
+      rw [tan_eq_sin_div_cos]
+      field
+    _ = 2 * sin (x / 2) * (1 / (cos (x / 2) * (1 + tan (x / 2) ^ 2))) := by rfl
+  congr
+  rw [tan_eq_sin_div_cos]
+  calc
+    _ = cos (x / 2) / (sin (x / 2) ^ 2 + cos (x / 2) ^ 2) := by field
+    _ = cos (x / 2) := by rw [sin_sq_add_cos_sq]; field
 
+/--/
   -- Our goal is to prove that, for any positive `ε`, there exists a natural
   -- number `N` such that, for any natural number `n` at least `N`,
   --  `|f(u_n) - f(x₀)|` is at most `ε`.
@@ -67,26 +82,25 @@ example (f : ℝ → ℝ) (u : ℕ → ℝ) (x₀ : ℝ) (hu : seq_limit u x₀)
   -- This follows from property (2) and our assumption on `n`.
   apply Hu n hn
   -- This finishes the proof!
-
---/
+-/
 
 
 /-
 # Computing
 
-## The ring tactic
+## The field tactic
 
 The first kind of proof you meet when learning maths is a proof by calculation.
 It may not sound like a proof, but this is actually using properties of operations on numbers,
-such as addition and multiplication. We conveniently have a tactic `ring` which knows about
+such as addition and multiplication. We conveniently have a tactic `field` which knows about
 most of these properties.
 -/
 
 example (a b c : ℝ) : (a * b) * c = b * (a * c) := by
-  ring
+  field
 
 /-
-It's your turn! Replace the word `sorry` below by a proof. In this case the proof is just `ring`.
+It's your turn! Replace the word `sorry` below by a proof. In this case the proof is just `field`.
 After you prove something, you will see a small "No goals" message, which is the indication that
 your proof is finished.
 -/
@@ -97,7 +111,7 @@ example (a b : ℝ) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 := by
 /-
 In the first example above, take a closer look at where Lean displays parentheses.
 For Lean, `a * b * c` is read as `(a * b) * c`, which is technically different to `a * (b * c)`!
-The fact that they are equal is a theorem used by the `ring` tactic when needed.
+The fact that they are equal is a theorem used by the `field` tactic when needed.
 -/
 
 
@@ -112,7 +126,7 @@ and try to understand what is happening.
 example (a b c d e : ℝ) (h : a = b + c) (h' : b = d - e) : a + e = d + c := by
   rw [h]
   rw [h']
-  ring
+  field
 
 /-
 The `rw` tactic changes the current goal. After the first line of the above proof,
@@ -127,13 +141,13 @@ You can combine multiple rewrites onto one line:
 -/
 example (a b c d e : ℝ) (h : a = b + c) (h' : b = d - e) : a + e = d + c := by
   rw [h, h']
-  ring
+  field
 
 /-
 Putting your cursor between `h` and `h'` shows you the intermediate proof state (try it).
 The background colour changes to highlight what is new in green.
 
-Now try it yourself. Remember that ring can still do calculations - but it doesn't use
+Now try it yourself. Remember that `field` can still do calculations - but it doesn't use
 the assumptions `h` and `h'`
 -/
 
@@ -146,7 +160,7 @@ example (a b c d : ℝ) (h : b = d + d) (h' : a = b + c) : a + b = c + 4 * d := 
 
 In the previous examples, we rewrote the goal using a local assumption. But we can
 also use existing theorems - facts we already knows.
-For example, let's prove an equation involving the `exp` function - something `ring
+For example, let's prove an equation involving the `exp` function - something `field`
 doesn't know about. We will rewrite twice with the theorem `exp_add x y`, which says that
 `exp(x + y) = exp(x) * exp(y)`.
 -/
@@ -155,7 +169,7 @@ example (a b c : ℝ) : exp (a + b + c) = exp a * exp b * exp c := by
   rw [exp_add a b]
 
 /-
-We didn't need to use `ring` at the end because, after the second `rw`, the goal becomes
+We didn't need to use `field` at the end because, after the second `rw`, the goal becomes
 `exp a * exp b * exp c = exp a * exp b * exp c`, and Lean immediately sees the proof is done.
 
 If we don't provide arguments to `exp_add`, Lean will try to guess them by finding
@@ -219,15 +233,15 @@ example (a b c d : ℝ) (h : c = d * a + b) (h' : b = d) : c = d * a + d := by
 The proof in the last example is very far away from what we would write on
 paper. We can get a more natural layout using the `calc` tactic.
 After each `:=` below, the goal is to prove equality with the preceding line
-(or the left-hand on the first line). Carefully check you understand what's going on by
-putting your cursor after each `by` and looking at the tactic state.
+(or the left-hand side on the first line). Carefully check you understand what's
+going on by putting your cursor after each `by` and looking at the tactic state.
 -/
 
-example (a b c d : ℝ) (h : c = b*a - d) (h' : d = a*b) : c = 0 := by
+example (a b c d : ℝ) (h : c = b * a - d) (h' : d = a * b) : c = 0 := by
   calc
-    c = b*a - d   := by rw [h]
-    _ = b*a - a*b := by rw [h']
-    _ = 0         := by ring
+    c = b * a - d     := by rw [h]
+    _ = b * a - a * b := by rw [h']
+    _ = 0             := by field
 
 /-
 Let's do some exercises using `calc`.
@@ -251,13 +265,11 @@ From a practical point of view, when writing a `calc` proof, it is sometimes con
 The underscores should be placed below the left-hand-side of the first line below the `calc`.
 Aligning the equal signs and `:=` signs is not necessary but looks tidy.
 
-You can write `calc?` to quickly get started with the right syntax.
+You can write `calc?` to quickly get started with the correct syntax.
 -/
 
 example (a b c d : ℝ) (h : c = d * a + b) (h' : b = a * d) : c = 2 * a * d := by
   sorry
-
--- TODO : introduce field_simp as a tool for clearing denominators
 
 #check sin_two_mul
 #check cos_two_mul'
@@ -268,24 +280,18 @@ example (x : ℝ) (hx : 1 - sin x ≠ 0) (hx₂ : cos x ≠ 0) :
     1 / cos x + tan x = cos x / (1 - sin x) := by
   calc
     _ = 1 / cos x + sin x / cos x := by rw [tan_eq_sin_div_cos]
-    _ = (1 + sin x) / cos x := by ring
-    _ = (1 + sin x) * (1 - sin x) / (cos x * (1 - sin x)) := by field_simp
-    _ = (1 - ((sin x) ^ 2 + (cos x) ^ 2) + (cos x) ^ 2) / (cos x * (1 - sin x)) := by ring
+    _ = (1 - ((sin x) ^ 2 + (cos x) ^ 2) + (cos x) ^ 2) / (cos x * (1 - sin x)) := by field
     _ = (1 - 1 + (cos x) ^ 2) / (cos x * (1 - sin x)) := by rw [sin_sq_add_cos_sq]
-    _ = (cos x) ^ 2 / (cos x * (1 - sin x)) := by ring
-    _ = cos x / (1 - sin x) := by field_simp
+    _ = cos x / (1 - sin x) := by field
 
 -- "quick" / uncontrolled alternative
 example (x : ℝ) (hx : 1 - sin x ≠ 0) (hx₂ : cos x ≠ 0) :
     1 / cos x + tan x = cos x / (1 - sin x) := by
   rw [tan_eq_sin_div_cos]
-  field_simp
-  ring
+  field
   rw [← sin_sq_add_cos_sq x]
-  ring
+  field
 
 -- TODO
 -- trig identities
--- remove "exact"
 -- "calc" earlier?
--- simplify explanations
