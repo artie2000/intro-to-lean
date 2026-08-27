@@ -11,9 +11,8 @@ section
 
 open Lean Parser Tactic
 
--- TODO : make a good `field` tactic
 macro (name := field) "field" : tactic =>
-  `(tactic | first | field_simp; ring_nf)
+  `(tactic| ((try field_simp); first | done | ring_nf))
 
 end
 
@@ -32,57 +31,40 @@ If everything works, you currently see a panel to the right of this text with a 
 Note: any text between `/-` and `-/` or after a `--` is a comment for you
 that is ignored by Lean.
 
-We write `x : ℝ` to say `x` is a real number, which is written `x ∈ ℝ` on paper.
+We write `x : ℝ` to say x is a real number, which is written `x ∈ ℝ` on paper.
 
-We claim that if `cos x` is not equal to `0`, then the following formula holds:
-`sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2)`.
+We will prove the tan half-angle formula: if cos(x/2)≠0, then
+sin x = 2 tan(x/2)/(1+tan^2(x/2)).
 
 The next line describes the objects and assumptions, each with its name.
-The following line is the claim we need to prove. -/
+The line after that is the claim we need to prove. -/
 example (x : ℝ) (hx : cos (x / 2) ≠ 0) :
-  sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2) := by -- This `by` keyword marks the beginning of the proof
+  sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2) := by
+  -- The `by` keyword above marks the beginning of the proof
   -- Put your text cursor here and watch the panel to the right.
   -- To the right of the blue `⊢` symbol is what we are trying to prove. Above this
   -- is our list of variables and hypotheses. As you read the proof, move your cursor from
   -- line to line (for example with the down-arrow button) and watch the panel change.
-  calc
-    sin x = sin (2 * (x / 2)) := by field
-    _ = 2 * sin (x / 2) * cos (x / 2) := by rw [sin_two_mul]
-  symm
-  calc
-    _ = 2 * sin (x / 2) * (1 / (cos (x / 2) * (1 + tan (x / 2) ^ 2))) := by
-      rw [tan_eq_sin_div_cos]
-      field
-    _ = 2 * sin (x / 2) * (1 / (cos (x / 2) * (1 + tan (x / 2) ^ 2))) := by rfl
-  congr
-  rw [tan_eq_sin_div_cos]
-  calc
-    _ = cos (x / 2) / (sin (x / 2) ^ 2 + cos (x / 2) ^ 2) := by field
-    _ = cos (x / 2) := by rw [sin_sq_add_cos_sq]; field
 
-/--/
-  -- Our goal is to prove that, for any positive `ε`, there exists a natural
-  -- number `N` such that, for any natural number `n` at least `N`,
-  --  `|f(u_n) - f(x₀)|` is at most `ε`.
-  unfold seq_limit
-  -- Fix a positive number `ε`.
-  intros ε hε
-  -- By assumption on `f` applied to this positive `ε`, we get a positive `δ`
-  -- such that, for all real numbers `x`, if `|x - x₀| ≤ δ` then `|f(x) - f(x₀)| ≤ ε` (1).
-  obtain ⟨δ, δ_pos, Hf⟩ : ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - f x₀| ≤ ε := hf ε hε
-  -- The assumption on `u` applied to this `δ` gives a natural number `N` such that
-  -- for every natural number `n`, if `n ≥ N` then `|u_n - x₀| ≤ δ`   (2).
-  obtain ⟨N, Hu⟩ : ∃ N, ∀ n ≥ N, |u n - x₀| ≤ δ := hu δ δ_pos
-  -- Let's prove `N` is suitable.
-  use N
-  -- Fix `n` which is at least `N`. Let's prove `|f(u_n) - f(x₀)| ≤ ε`.
-  intros n hn
-  -- Thanks to (1) applied to `u_n`, it suffices to prove that `|u_n - x₀| ≤ δ`.
-  apply Hf
-  -- This follows from property (2) and our assumption on `n`.
-  apply Hu n hn
-  -- This finishes the proof!
--/
+  -- Expand `tan` into `sin / cos`
+  rw [tan_eq_sin_div_cos]
+
+  -- Clear denominators, and expand and simplify both sides
+  field
+
+  -- Rearrange into a more helpful form
+  suffices sin x * (sin (x * (1 / 2)) ^ 2 + cos (x * (1 / 2)) ^ 2) =
+           2 * sin (x * (1 / 2)) * cos (x * (1 / 2)) by linear_combination this
+
+  -- Use the sin double angle formula
+  rw [← sin_two_mul]
+
+  -- Use sin^2 + cos^2 = 1
+  rw [sin_sq_add_cos_sq]
+
+  -- Expand and simplify both sides
+  field
+  -- The panel to the right says `No goals`. The proof is done!
 
 
 /-
@@ -154,12 +136,11 @@ the assumptions `h` and `h'`
 example (a b c d : ℝ) (h : b = d + d) (h' : a = b + c) : a + b = c + 4 * d := by
   sorry
 
--- TODO : use trig identity instead?
 /-
 ## Rewriting with an existing theorem
 
 In the previous examples, we rewrote the goal using a local assumption. But we can
-also use existing theorems - facts we already knows.
+also use existing theorems - facts we already know.
 For example, let's prove an equation involving the `exp` function - something `field`
 doesn't know about. We will rewrite twice with the theorem `exp_add x y`, which says that
 `exp(x + y) = exp(x) * exp(y)`.
@@ -181,7 +162,7 @@ example (a b c : ℝ) : exp (a + b + c) = exp a * exp b * exp c := by
 
 /-
 Let's do an exercise, where you also have to use the facts
-`exp_sub x y : exp(x - y) = exp(x) / exp(y)` and `exp_zero : exp 0 = 1`.
+`exp_sub x y : exp(x - y) = exp(x) / exp(y)` and `exp_zero : exp(0) = 1`.
 
 Remember: `a + b - c` means `(a + b) - c`.
 -/
@@ -244,7 +225,7 @@ example (a b c d : ℝ) (h : c = b * a - d) (h' : d = a * b) : c = 0 := by
     _ = 0             := by field
 
 /-
-Let's do some exercises using `calc`.
+Let's do an exercise using `calc`.
 -/
 
 example (a b c : ℝ) (h : a = b + c) : exp (2 * a) = (exp b) ^ 2 * (exp c) ^ 2 := by
@@ -294,4 +275,3 @@ example (x : ℝ) (hx : 1 - sin x ≠ 0) (hx₂ : cos x ≠ 0) :
 
 -- TODO
 -- trig identities
--- "calc" earlier?
