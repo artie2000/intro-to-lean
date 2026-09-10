@@ -18,8 +18,6 @@ end
 
 open Real
 
--- TODO : comment-free version for workshop
-
 /-
 # Introduction to this tutorial
 
@@ -33,11 +31,12 @@ that is ignored by Lean.
 
 We write `x : ℝ` to say x is a real number, which is written `x ∈ ℝ` on paper.
 
-We will prove the tan half-angle formula: if cos(x/2)≠0, then
+We will prove the tan half-angle formula: if cos(x/2) ≠ 0, then
 sin x = 2 tan(x/2)/(1+tan^2(x/2)).
 
 The next line describes the objects and assumptions, each with its name.
 The line after that is the claim we need to prove. -/
+
 example (x : ℝ) (hx : cos (x / 2) ≠ 0) :
   sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2) := by
   -- The `by` keyword above marks the beginning of the proof
@@ -105,6 +104,7 @@ we can replace `A` with `B` anywhere we like. This operation is called rewriting
 and the tactic for this is called `rw`. Carefully step through the proof below
 and try to understand what is happening.
 -/
+
 example (a b c d e : ℝ) (h : a = b + c) (h' : b = d - e) : a + e = d + c := by
   rw [h]
   rw [h']
@@ -121,6 +121,7 @@ that can automate tedious steps for you, but we'll keep it simple for now.
 
 You can combine multiple rewrites onto one line:
 -/
+
 example (a b c d e : ℝ) (h : a = b + c) (h' : b = d - e) : a + e = d + c := by
   rw [h, h']
   field
@@ -136,23 +137,38 @@ the assumptions `h` and `h'`
 example (a b c d : ℝ) (h : b = d + d) (h' : a = b + c) : a + b = c + 4 * d := by
   sorry
 
+
 /-
 ## Rewriting with an existing theorem
 
 In the previous examples, we rewrote the goal using a local assumption. But we can
 also use existing theorems - facts we already know.
-For example, let's prove an equation involving the `exp` function - something `field`
-doesn't know about. We will rewrite twice with the theorem `exp_add x y`, which says that
-`exp(x + y) = exp(x) * exp(y)`.
+For example, let's prove an equation involving trig - something `field` doesn't know about.
+We will rewrite with the theorem `sin_pi`, which says that sin(π) = 0,
+and `cos_pi`, which says that cos(π) = -1.
+You can hover over a theorem, or use `#check`, to see what it says.
 -/
-example (a b c : ℝ) : exp (a + b + c) = exp a * exp b * exp c := by
-  rw [exp_add (a + b) c]
-  rw [exp_add a b]
+
+#check sin_zero
+#check cos_zero
+
+example (a b c : ℝ) : sin 0 + cos 0 = 1 := by
+  rw [sin_zero]
+  rw [cos_zero]
+  field
 
 /-
-We didn't need to use `field` at the end because, after the second `rw`, the goal becomes
-`exp a * exp b * exp c = exp a * exp b * exp c`, and Lean immediately sees the proof is done.
+Let's do an exercise, where you also have to use the fact `sin_zero`.
+-/
 
+#check sin_zero
+
+example (a b : ℝ) (h : a = b / 2) : sin (2 * a - b) = 0 := by
+  sorry
+
+/-
+TODO
+Sometimes, an existing theorem will take an argument
 If we don't provide arguments to `exp_add`, Lean will try to guess them by finding
 the first match for the left-hand side of the equation. In this case this work out fine, but
 sometimes more control is needed.
@@ -161,14 +177,17 @@ example (a b c : ℝ) : exp (a + b + c) = exp a * exp b * exp c := by
   rw [exp_add, exp_add]
 
 /-
-Let's do an exercise, where you also have to use the facts
-`exp_sub x y : exp(x - y) = exp(x) / exp(y)` and `exp_zero : exp(0) = 1`.
-
-Remember: `a + b - c` means `(a + b) - c`.
+The `field` tactic can simplify fractions, as long as it can see
+that the denominator is non-zero. This is what the assumption `hx` says in the next theorem.
+What happens if you remove it?
 -/
 
-example (a b c : ℝ) : exp (a + b - c) = (exp a * exp b) / (exp c * exp 0) := by
-  sorry
+#check tan_eq_sin_div_cos
+
+example (x : ℝ) (hx : cos x ≠ 0) :
+    tan x * cos x = sin x := by
+  rw [tan_eq_sin_div_cos]
+  field
 
 
 /-
@@ -177,6 +196,7 @@ example (a b c : ℝ) : exp (a + b - c) = (exp a * exp b) / (exp c * exp 0) := b
 We can also rewrite backwards, replacing the right-hand side of an equality with the
 left-hand side, using `←`:
 -/
+
 example (a b c d e : ℝ) (h : a = b + c) (h' : a + e = d + c) : b + c + e = d + c := by
   rw [← h, h']
 
@@ -199,8 +219,8 @@ example (a b c d : ℝ) (h : a = b + b) (h' : b = c) (h'' : a = d) : b + c = d :
 ## Rewriting in a local assumption
 
 We can also perform rewriting in an assumption of the local context, using for instance
-  `rw [exp_add x y] at h`
-in order to replace `exp(x + y)` by `exp(x) * exp(y)` in assumption `h`.
+  `rw [sin_zero] at h`
+in order to replace `sin 0` by `0` in assumption `h`.
 -/
 
 example (a b c d : ℝ) (h : c = d * a + b) (h' : b = d) : c = d * a + d := by
@@ -225,10 +245,11 @@ example (a b c d : ℝ) (h : c = b * a - d) (h' : d = a * b) : c = 0 := by
     _ = 0             := by field
 
 /-
+TODO
 Let's do an exercise using `calc`.
 -/
 
-example (a b c : ℝ) (h : a = b + c) : exp (2 * a) = (exp b) ^ 2 * (exp c) ^ 2 := by
+example (a b c : ℝ) (h : a = 2 * b + c) : exp (2 * a) = (exp b) ^ 2 * (exp c) ^ 2 := by
   calc
     exp (2 * a) = exp (2 * (b + c))                 := by sorry
               _ = exp ((b + b) + (c + c))           := by sorry
@@ -252,26 +273,22 @@ You can write `calc?` to quickly get started with the correct syntax.
 example (a b c d : ℝ) (h : c = d * a + b) (h' : b = a * d) : c = 2 * a * d := by
   sorry
 
+/-
+Here are some harder trig identities. Try these exercises - they're easier using `calc`.
+-/
+
 #check sin_two_mul
 #check cos_two_mul'
 #check sin_sq_add_cos_sq
-#check tan_eq_sin_div_cos
+
+example (x : ℝ) :
+    sin x * cos (2 * x) = sin x - 2 * (sin x) ^ 3 := by
+  sorry
+
+example (x : ℝ) (hx : cos x ≠ 0) :
+    1 / (cos x) ^ 2 - 1 = (tan x) ^ 2 := by
+  sorry
 
 example (x : ℝ) (hx : 1 - sin x ≠ 0) (hx₂ : cos x ≠ 0) :
     1 / cos x + tan x = cos x / (1 - sin x) := by
-  calc
-    _ = 1 / cos x + sin x / cos x := by rw [tan_eq_sin_div_cos]
-    _ = (1 - ((sin x) ^ 2 + (cos x) ^ 2) + (cos x) ^ 2) / (cos x * (1 - sin x)) := by field
-    _ = (1 - 1 + (cos x) ^ 2) / (cos x * (1 - sin x)) := by rw [sin_sq_add_cos_sq]
-    _ = cos x / (1 - sin x) := by field
-
--- "quick" / uncontrolled alternative
-example (x : ℝ) (hx : 1 - sin x ≠ 0) (hx₂ : cos x ≠ 0) :
-    1 / cos x + tan x = cos x / (1 - sin x) := by
-  rw [tan_eq_sin_div_cos]
-  field
-  rw [← sin_sq_add_cos_sq x]
-  field
-
--- TODO
--- trig identities
+  sorry
