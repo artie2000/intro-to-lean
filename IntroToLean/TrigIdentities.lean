@@ -14,9 +14,11 @@ open Lean Parser Tactic
 macro (name := field) "field" : tactic =>
   `(tactic| ((try field_simp); first | done | ring_nf))
 
+alias cos_two_mul := Real.cos_two_mul'
+
 end
 
-open Real
+open Real hiding cos_two_mul
 
 example (x : ℝ) (hx : cos (x / 2) ≠ 0) :
     sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2) := by
@@ -105,7 +107,7 @@ example (a b c d : ℝ) (h : c = d * a + b) (h' : b = a * d) : c = 2 * a * d := 
   sorry
 
 #check sin_two_mul
-#check cos_two_mul'
+#check cos_two_mul
 #check sin_sq_add_cos_sq
 
 example (x : ℝ) :
@@ -113,7 +115,7 @@ example (x : ℝ) :
   sorry
 
 example (x : ℝ) (hx : cos x ≠ 0) :
-    1 / (cos x) ^ 2 - 1 = (tan x) ^ 2 := by
+    1 / cos x ^ 2 - 1 = (tan x) ^ 2 := by
   sorry
 
 example (x : ℝ) (hx : 1 - sin x ≠ 0) (hx₂ : cos x ≠ 0) :

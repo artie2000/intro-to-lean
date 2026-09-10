@@ -14,9 +14,11 @@ open Lean Parser Tactic
 macro (name := field) "field" : tactic =>
   `(tactic| ((try field_simp); first | done | ring_nf))
 
+alias cos_two_mul := Real.cos_two_mul'
+
 end
 
-open Real
+open Real hiding cos_two_mul
 
 /-
 # Introduction to this tutorial
@@ -169,6 +171,9 @@ example (a b : ℝ) (h : a = b / 2) : sin (2 * a - b) = 0 := by
   sorry
 
 /-
+Note that the goal is immediately closed after `rw [sin_zero]`, without the need for one final `field`.
+This is because Lean can see that both sides are the same and there's nothing to prove.
+
 If a theorem takes an argument, you can provide the argument in `rw`.
 Let's see this by proving the sin double angle formula.
 -/
