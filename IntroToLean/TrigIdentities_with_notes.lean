@@ -162,10 +162,8 @@ example (a b c : ℝ) : sin 0 + cos 0 = 1 := by
   field
 
 /-
-Let's do an exercise, where you also have to use the fact `sin_zero`.
+Let's do an exercise!
 -/
-
-#check sin_zero
 
 example (a b : ℝ) (h : a = b / 2) : sin (2 * a - b) = 0 := by
   sorry
