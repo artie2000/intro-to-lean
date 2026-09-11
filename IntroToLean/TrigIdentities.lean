@@ -20,6 +20,8 @@ end
 
 open Real hiding cos_two_mul
 
+/- Start here! -/
+
 example (x : ℝ) (hx : cos (x / 2) ≠ 0) :
     sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2) := by
   rw [tan_eq_sin_div_cos]
@@ -59,7 +61,7 @@ example (a b c : ℝ) : sin 0 + cos 0 = 1 := by
   rw [cos_zero]
   field
 
-example (a b : ℝ) (h : a = b / 2) : sin (2 * a - b) = 0 := by
+example (a b : ℝ) (h : a = 0) : sin a = 0 := by
   sorry
 
 #check sin_add

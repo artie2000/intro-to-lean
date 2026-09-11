@@ -165,11 +165,11 @@ example (a b c : ℝ) : sin 0 + cos 0 = 1 := by
 Let's do an exercise!
 -/
 
-example (a b : ℝ) (h : a = b / 2) : sin (2 * a - b) = 0 := by
+example (a b : ℝ) (h : a = 0) : sin a = 0 := by
   sorry
 
 /-
-Note that the goal is immediately closed after `rw [sin_zero]`, without the need for one final `field`.
+Note that the goal is immediately closed after `rw [sin_zero]`, without the need for a final `field`.
 This is because Lean can see that both sides are the same and there's nothing to prove.
 
 If a theorem takes an argument, you can provide the argument in `rw`.
