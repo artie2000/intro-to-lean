@@ -20,7 +20,7 @@ end
 
 open Real hiding cos_two_mul
 
-/- Start here! -/
+/-! ## Start here! -/
 
 example (x : ℝ) (hx : cos (x / 2) ≠ 0) :
     sin x = (2 * tan (x / 2)) / (1 + (tan (x / 2)) ^ 2) := by

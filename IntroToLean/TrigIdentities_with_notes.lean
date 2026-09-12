@@ -147,10 +147,10 @@ example (a b c d : ℝ) (h : b = d + d) (h' : a = b + c) : a + b = c + 4 * d := 
 In the previous examples, we rewrote the goal using a local assumption. But we can
 also use existing theorems - facts we already know.
 For example, let's prove an equation involving trig - something `field` doesn't know about.
-We will rewrite with the theorem `sin_pi`, which says that sin(π) = 0,
-and `cos_pi`, which says that cos(π) = -1.
+We will rewrite with the theorem `sin_zero`, which says that sin(π) = 0,
+and `cos_zero`, which says that cos(π) = -1.
 You can hover over a theorem, or use `#check`, to see what it says.
-Note that Lan doesn't put unnecessary brackets around the arguments of functions.
+Note that Lean doesn't put unnecessary brackets around the arguments of functions.
 -/
 
 #check sin_zero
