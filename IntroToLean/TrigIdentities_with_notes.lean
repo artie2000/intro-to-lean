@@ -227,21 +227,19 @@ example (a b c d : ℝ) (h : a = b + b) (h' : b = c) (h'' : a = d) : b + c = d :
 
 
 /-
-## Rewriting in a local assumption
+## Calculation layout using calc
 
 We can also perform rewriting in an assumption of the local context, using for instance
   `rw [sin_zero] at h`
 in order to replace `sin 0` by `0` in assumption `h`.
 -/
 
-example (a b c d : ℝ) (h : c = d * a + b) (h' : b = d) : c = d * a + d := by
+example (a b c d : ℝ) (h : c = b * a - d) (h' : d = a * b) : c = 0 := by
   rw [h'] at h
   rw [h]
-
+  ring
 
 /-
-## Calculation layout using calc
-
 The proof in the last example is very far away from what we would write on
 paper. We can get a more natural layout using the `calc` tactic.
 After each `:=` below, the goal is to prove equality with the preceding line

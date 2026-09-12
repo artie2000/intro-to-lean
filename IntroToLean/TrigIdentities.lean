@@ -84,10 +84,10 @@ example (a b c d : ℝ) (h : a = b + b) (h' : b = c) (h'' : a = d) : b + c = d :
   sorry
 
 
-example (a b c d : ℝ) (h : c = d * a + b) (h' : b = d) : c = d * a + d := by
+example (a b c d : ℝ) (h : c = b * a - d) (h' : d = a * b) : c = 0 := by
   rw [h'] at h
   rw [h]
-
+  ring
 
 example (a b c d : ℝ) (h : c = b * a - d) (h' : d = a * b) : c = 0 := by
   calc
