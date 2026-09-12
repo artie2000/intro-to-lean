@@ -83,6 +83,5 @@ to generate the right syntax.
 example (n : ℕ) : 3 ∣ (4 : ℤ) ^ n - 1 := by
   sorry
 
-
-example (n : ℕ) : 7 ∣ (3 : ℤ) ^ (n + 2) + (3 : ℤ) ^ (2 * n + 1) := by
+example (n : ℕ) : 7 ∣ (2 : ℤ) ^ (n + 2) + (3 : ℤ) ^ (2 * n + 1) := by
   sorry
